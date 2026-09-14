@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="10.0" alignment="TOP_CENTER" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.demopay.controller.PaymentController"
+      style="-fx-background-color: #f4f6f9; -fx-padding: 15;">
+
+    <Label text="SkyLanka Air Travels - Payment Management" style="-fx-text-fill: #003366;">
+        <font>
+            <Font name="System Bold" size="20.0"/>
+        </font>
+    </Label>
+
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+
+        <!-- CREATE: Process Payment & Generate Invoice[cite: 2] -->
+        <Tab text="Process Payment">
+            <VBox spacing="15.0" style="-fx-padding: 15;">
+                <GridPane vgap="10" hgap="10" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 5;">
+                    <Label text="Booking ID:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="bookingIdInput" text="10045" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Total Amount (USD):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="amountInput" text="450.00" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <VBox spacing="10.0">
+                    <Label text="Payment Method"/>
+                    <ComboBox fx:id="paymentMethodBox" maxWidth="Infinity"/>
+
+                    <Label text="Card Number"/>
+                    <TextField fx:id="cardNumberField" promptText="16-digit Card Number"/>
+
+                    <HBox spacing="10.0">
+                        <VBox HBox.hgrow="ALWAYS">
+                            <Label text="Expiry (MM/YY)"/>
+                            <TextField fx:id="expiryField" promptText="12/28"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS">
+                            <Label text="CVV"/>
+                            <PasswordField fx:id="cvvField" promptText="123"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <Button fx:id="payButton" text="Pay Now &amp; Generate Invoice" onAction="#onPayButtonClick"
+                        maxWidth="Infinity" style="-fx-background-color: #003366; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10;"/>
+            </VBox>
+        </Tab>
+
+        <!-- READ & UPDATE & DELETE: History, Refund, and Void[cite: 2] -->
+        <Tab text="Payment Records &amp; Management">
+            <VBox spacing="10.0" style="-fx-padding: 15;">
+                <TableView fx:id="paymentTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
+                        <TableColumn fx:id="colBookingId" text="Booking ID" prefWidth="80"/>
+                        <TableColumn fx:id="colAmount" text="Amount ($)" prefWidth="80"/>
+                        <TableColumn fx:id="colMethod" text="Method" prefWidth="80"/>
+                        <TableColumn fx:id="colCard" text="Card" prefWidth="110"/>
+                        <TableColumn fx:id="colTxnId" text="Txn ID" prefWidth="100"/>
+                        <TableColumn fx:id="colInvoice" text="Invoice No" prefWidth="110"/>
+                        <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
+                    </columns>
+                </TableView>
+
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Button text="Refresh Table" onAction="#loadPaymentHistory" style="-fx-background-color: #2a9d8f; -fx-text-fill: white;"/>
+                    <Button text="Apply Refund" onAction="#onRefundClick" style="-fx-background-color: #e76f51; -fx-text-fill: white;"/>
+                    <Button text="Void Transaction" onAction="#onVoidClick" style="-fx-background-color: #d62828; -fx-text-fill: white;"/>
+                </HBox>
+            </VBox>
+        </Tab>
+    </TabPane>
+
+    <Label fx:id="statusLabel" wrapText="true" style="-fx-font-weight: bold;"/>
+</VBox>
