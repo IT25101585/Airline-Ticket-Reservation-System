@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="0" alignment="TOP_CENTER" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.demoseat.controller.SeatController"
+      style="-fx-background-color: #f4f6f9;">
+
+
+    <HBox style="-fx-background-color: #00205b; -fx-padding: 15 25 15 25;" alignment="CENTER_LEFT" spacing="15">
+        <VBox HBox.hgrow="ALWAYS">
+            <Label text="SkyLanka Airlines" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white; -fx-font-family: 'Segoe UI', sans-serif;"/>
+            <Label text="SEAT MANAGEMENT PORTAL" style="-fx-font-size: 11px; -fx-text-fill: #d1d5db; -fx-letter-spacing: 1px;"/>
+        </VBox>
+        <Label text="Manage Flights &amp; Bookings" style="-fx-text-fill: #e0e6ed; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+    </HBox>
+
+
+    <HBox style="-fx-background-color: #ffffff; -fx-padding: 10 25 10 25; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;" alignment="CENTER_LEFT" spacing="10">
+        <Label text="✈  Flight Seat Inventory Control" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #00205b;"/>
+    </HBox>
+
+
+    <HBox spacing="20" style="-fx-padding: 20;" VBox.vgrow="ALWAYS">
+
+
+        <VBox spacing="12" prefWidth="300" style="-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 2);">
+
+            <Label text="Seat Details" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00205b; -fx-border-color: #00205b; -fx-border-width: 0 0 2 0; -fx-padding: 0 0 5 0;"/>
+
+            <VBox spacing="4">
+                <Label text="Flight ID" style="-fx-font-weight: bold; -fx-text-fill: #4b5563; -fx-font-size: 12px;"/>
+                <TextField fx:id="txtFlightId" promptText="e.g. UL-302" style="-fx-background-radius: 4; -fx-border-color: #d1d5db; -fx-border-radius: 4; -fx-padding: 7;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Seat Number" style="-fx-font-weight: bold; -fx-text-fill: #4b5563; -fx-font-size: 12px;"/>
+                <TextField fx:id="txtSeatId" promptText="e.g. 1A, 12C" style="-fx-background-radius: 4; -fx-border-color: #d1d5db; -fx-border-radius: 4; -fx-padding: 7;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Cabin Class" style="-fx-font-weight: bold; -fx-text-fill: #4b5563; -fx-font-size: 12px;"/>
+                <ComboBox fx:id="cmbClass" prefWidth="260" style="-fx-background-radius: 4; -fx-border-color: #d1d5db; -fx-border-radius: 4;"/>
+            </VBox>
+
+            <VBox spacing="4">
+                <Label text="Price ($)" style="-fx-font-weight: bold; -fx-text-fill: #4b5563; -fx-font-size: 12px;"/>
+                <TextField fx:id="txtPrice" promptText="180.00" style="-fx-background-radius: 4; -fx-border-color: #d1d5db; -fx-border-radius: 4; -fx-padding: 7;"/>
+            </VBox>
+
+            <CheckBox fx:id="chkBooked" text="Mark as Booked / Reserved" style="-fx-padding: 8 0 8 0; -fx-text-fill: #1f2937; -fx-font-size: 12px;"/>
+
+
+            <VBox spacing="8">
+                <HBox spacing="8">
+                    <Button text="Save / Update" onAction="#handleSave" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                            style="-fx-background-color: #00205b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 8; -fx-cursor: hand;"/>
+                    <Button text="Delete" onAction="#handleDelete"
+                            style="-fx-background-color: #b91c1c; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 8; -fx-cursor: hand;"/>
+                </HBox>
+
+                <HBox spacing="8">
+                    <Button text="Clear" onAction="#handleClear" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                            style="-fx-background-color: #e5e7eb; -fx-text-fill: #374151; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 8; -fx-cursor: hand;"/>
+                    <Button text="Reload Table" onAction="#loadTableData" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                            style="-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-padding: 8; -fx-cursor: hand;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+
+        <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+            <VBox fx:id="flightPanesContainer" spacing="20"/>
+        </ScrollPane>
+
+    </HBox>
+</VBox>
