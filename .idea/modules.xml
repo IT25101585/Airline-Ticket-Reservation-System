@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Airline-Ticket-Reservation-System.iml" filepath="$PROJECT_DIR$/.idea/Airline-Ticket-Reservation-System.iml" />
-      <module fileurl="file://$PROJECT_DIR$/backend/booking-management/booking.iml" filepath="$PROJECT_DIR$/backend/booking-management/booking.iml" />
-    </modules>
-  </component>
-</project>
