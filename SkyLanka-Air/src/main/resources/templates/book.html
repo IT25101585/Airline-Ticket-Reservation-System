@@ -1,0 +1,296 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Book flight · SkyLanka Air</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/travel-theme.css">
+</head>
+<body>
+<nav th:replace="~{fragments :: navCustomer}"></nav>
+
+<div class="page-title-band">
+    <div class="container">
+        <h1>Complete your booking</h1>
+        <p th:text="${flight.flightNumber+' · '+flight.origin+' → '+flight.destination}"></p>
+    </div>
+</div>
+
+<main class="container pb-5">
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form method="post" th:action="@{'/book/'+${flight.id}}" id="booking-form"
+          th:attr="data-flight-id=${flight.id},data-international=${flight.international},data-holder=${holder},data-profile-passport=${profilePassport}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <!-- Guest checkout: no account needed -->
+        <div class="card border-0 shadow-sm mb-4" th:if="${guestCheckout}">
+            <div class="card-body">
+                <h3 class="h5 fw-bold">Continue as guest</h3>
+                <p class="text-muted small mb-3">No account needed - we'll send your ticket to this email.
+                    Already have an account? <a href="/login">Sign in</a>.</p>
+                <div class="row g-3">
+                    <div class="col-md-4"><input name="guestName" class="form-control" placeholder="Your full name"
+                                                 required minlength="2" maxlength="100" th:value="${param.guestName}"></div>
+                    <div class="col-md-4"><input name="guestEmail" type="email" class="form-control" placeholder="Email address"
+                                                 required maxlength="150" th:value="${param.guestEmail}"></div>
+                    <div class="col-md-4"><input name="guestContact" class="form-control" placeholder="Contact number"
+                                                 required pattern="\+?[0-9]{7,15}" title="7-15 digits, optional leading +"
+                                                 th:value="${param.guestContact}"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 sl-stagger">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h5 fw-bold">Passenger details</h3>
+                        <p class="text-muted small">Select seats first — one passenger row appears per seat, in seat order.</p>
+                        <div id="passenger-rows"><p class="text-muted" id="no-passengers">No seats selected yet.</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h5 fw-bold">Select seats</h3>
+                        <p class="text-muted small">Choose one seat per passenger. Grey seats are unavailable. A seat you pick is
+                            held for you for <span th:text="${seatHoldMinutes}">10</span> minutes and released automatically if you don't finish.</p>
+                        <div id="seat-message" class="small text-danger mb-2" role="status"></div>
+                        <div class="seat-legend">
+                            <span class="seat-legend-item"><span class="seat-swatch seat-swatch-business"></span> Business</span>
+                            <span class="seat-legend-item"><span class="seat-swatch seat-swatch-economy"></span> Economy</span>
+                            <span class="seat-legend-item"><span class="seat-icon-sample">W</span> Window</span>
+                            <span class="seat-legend-item"><span class="seat-icon-sample">A</span> Aisle</span>
+                        </div>
+                        <div class="plane" th:with="half=${(#lists.isEmpty(seatRows) ? 6 : #lists.size(seatRows[0])) / 2}">
+                            <div class="plane-row" th:each="row : ${seatRows}">
+                                <span class="row-number" th:text="${row[0].seatNumber.replaceAll('[^0-9]','')}"></span>
+                                <div class="row-seats">
+                                    <th:block th:each="seat, iter : ${row}">
+                                        <div class="aisle-gap" th:if="${iter.index == half}"></div>
+                                        <label th:class="${'seat '+((seat.status.name()=='AVAILABLE' or (seat.status.name()=='HELD' and seat.heldBy == holder))?'':'unavailable')}"
+                                               th:attr="data-seat=${seat.seatNumber},data-class=${seat.seatClass},
+                                                        data-position=${iter.index == 0 or iter.index == row.size()-1 ? 'window' : (iter.index == half - 1 or iter.index == half ? 'aisle' : 'middle')}"
+                                               th:for="${'s'+seat.id}">
+                                            <input type="checkbox" name="seatIds"
+                                                   th:id="${'s'+seat.id}" th:value="${seat.id}"
+                                                   th:disabled="${!(seat.status.name()=='AVAILABLE' or (seat.status.name()=='HELD' and seat.heldBy == holder))}"
+                                                   th:attr="aria-label=${'Seat '+seat.seatNumber+', '+seat.seatClass+' class'}">
+                                            <span class="seat-position-icon"></span>
+                                            <span th:text="${seat.seatNumber}"></span>
+                                        </label>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="seat-selection" class="seat-selection text-muted">No seats selected yet.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h3 class="h6 fw-bold"><i class="bi bi-info-circle me-1"></i>Cancellation &amp; refund policy</h3>
+                <ul class="small text-muted mb-0">
+                    <li>Unpaid bookings are held for a limited time and then released automatically.</li>
+                    <li>Cancelling a paid booking refunds the fare according to how close it is to departure; the service fee is non-refundable.</li>
+                    <li>If the airline cancels or delays your flight by more than 24 hours you receive a full refund.</li>
+                    <li>You can dispute a calculated refund amount from your booking page after cancelling.</li>
+                </ul>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="policyAck" required>
+                    <label class="form-check-label small" for="policyAck">I have read the cancellation and refund policy.</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <label for="promoCode" class="form-label fw-semibold">Promotion code</label>
+                <input id="promoCode" name="promoCode" class="form-control" placeholder="Optional promotion code">
+                <small class="text-muted">Leave blank if you do not have a promotion code.</small>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <strong class="fs-4"><span th:replace="~{fragments :: currency(${flight.baseFare})}"></span></strong>
+                    <span class="text-muted"> per passenger, + taxes and service fee</span>
+                </div>
+                <button class="btn btn-primary btn-lg" type="submit">Continue to payment</button>
+            </div>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments :: footerCustomer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const seatInputs = Array.from(document.querySelectorAll('.plane input[type=checkbox]'));
+    const rowsContainer = document.getElementById('passenger-rows');
+    const summary = document.getElementById('seat-selection');
+    const passengerData = {};
+    const form = document.getElementById('booking-form');
+    const international = form.dataset.international === 'true';
+    const flightId = form.dataset.flightId;
+    const profilePassport = form.dataset.profilePassport || '';
+    const csrfName = form.querySelector('input[type=hidden][name=_csrf]').name;
+    const csrfValue = form.querySelector('input[type=hidden][name=_csrf]').value;
+    const seatMessage = document.getElementById('seat-message');
+
+    function postSeat(path) {
+        const body = new URLSearchParams();
+        body.append(csrfName, csrfValue);
+        return fetch(path, {method: 'POST', body: body, credentials: 'same-origin'})
+            .then(function (r) { return r.json(); });
+    }
+
+    // Reflect other visitors' holds/bookings on the seat map.
+    function refreshSeatMap() {
+        fetch('/flights/' + flightId + '/seat-status', {credentials: 'same-origin'})
+            .then(function (r) { return r.json(); })
+            .then(function (map) {
+                seatInputs.forEach(function (input) {
+                    const st = map[input.value];
+                    if (!st) return;
+                    const mine = st === 'HELD_BY_YOU' || (input.checked && st === 'HELD_BY_YOU');
+                    const free = st === 'AVAILABLE' || mine;
+                    const label = input.closest('.seat');
+                    if (!free && !input.checked) {
+                        input.disabled = true;
+                        label.classList.add('unavailable');
+                    } else if (free && !input.checked) {
+                        input.disabled = false;
+                        label.classList.remove('unavailable');
+                    } else if (input.checked && st === 'AVAILABLE') {
+                        // our hold lapsed - re-take it if still free
+                        postSeat('/seats/' + input.value + '/hold').then(function (res) {
+                            if (!res.held) { input.checked = false; rebuildRows(); seatMessage.textContent = res.message; }
+                        });
+                    }
+                });
+            })
+            .catch(function () { /* ignore transient errors */ });
+    }
+
+    function classLabel(rawClass) {
+        if (!rawClass) return '';
+        return rawClass.charAt(0) + rawClass.slice(1).toLowerCase();
+    }
+
+    function rebuildRows() {
+        const checked = seatInputs.filter(function (i) { return i.checked; });
+
+        if (checked.length === 0) {
+            summary.textContent = 'No seats selected yet.';
+            summary.classList.add('text-muted');
+        } else {
+            summary.textContent = checked.length + ' seat(s) selected: ' +
+                checked.map(function (i) {
+                    const seatEl = i.closest('.seat');
+                    return seatEl.dataset.seat + ' (' + classLabel(seatEl.dataset.class) + ')';
+                }).join(', ');
+            summary.classList.remove('text-muted');
+        }
+
+        rowsContainer.innerHTML = '';
+
+        if (checked.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'text-muted';
+            p.id = 'no-passengers';
+            p.textContent = 'No seats selected yet.';
+            rowsContainer.appendChild(p);
+            return;
+        }
+
+        checked.forEach(function (input, idx) {
+            const seatId = input.value;
+            const seatEl = input.closest('.seat');
+            const seatLabel = seatEl.dataset.seat;
+            const seatClassLabel = classLabel(seatEl.dataset.class);
+            const saved = passengerData[seatId] || {name: '', passport: (idx === 0 ? profilePassport : ''), contact: ''};
+
+            const row = document.createElement('div');
+            row.className = 'field';
+            row.innerHTML =
+                '<span class="field-group-label">Passenger ' + (idx + 1) + ' \u2014 Seat ' + seatLabel +
+                ' (' + seatClassLabel + ')</span>' +
+                '<input name="names" placeholder="Full name" aria-label="Passenger ' + (idx + 1) + ' full name" ' +
+                'required minlength="2" maxlength="100" ' +
+                'title="2-100 letters, spaces, apostrophes or hyphens">' +
+                '<input name="passports" placeholder="' + (international ? 'Passport number' : 'Passport number (optional - domestic flight)') + '" aria-label="Passenger ' + (idx + 1) + ' passport number" ' +
+                (international ? 'required ' : '') + 'pattern="[A-Za-z0-9]{6,9}" minlength="6" maxlength="9" ' +
+                'title="6-9 letters or digits">' +
+                '<input name="contacts" placeholder="Contact number" aria-label="Passenger ' + (idx + 1) + ' contact number" ' +
+                'required pattern="\\+?[0-9]{7,15}" minlength="7" maxlength="16" ' +
+                'title="7-15 digits, optional leading +">';
+
+            const inputs = row.querySelectorAll('input');
+            const nameEl = inputs[0], passportEl = inputs[1], contactEl = inputs[2];
+            nameEl.value = saved.name;
+            passportEl.value = saved.passport;
+            contactEl.value = saved.contact;
+
+            nameEl.addEventListener('input', function () {
+                passengerData[seatId] = passengerData[seatId] || {};
+                passengerData[seatId].name = nameEl.value;
+            });
+            passportEl.addEventListener('input', function () {
+                passengerData[seatId] = passengerData[seatId] || {};
+                passengerData[seatId].passport = passportEl.value;
+            });
+            contactEl.addEventListener('input', function () {
+                passengerData[seatId] = passengerData[seatId] || {};
+                passengerData[seatId].contact = contactEl.value;
+            });
+
+            rowsContainer.appendChild(row);
+        });
+    }
+
+    seatInputs.forEach(function (input) {
+        input.addEventListener('change', function () {
+            seatMessage.textContent = '';
+            if (input.checked) {
+                postSeat('/seats/' + input.value + '/hold').then(function (res) {
+                    if (!res.held) {
+                        input.checked = false;
+                        seatMessage.textContent = res.message;
+                        if (!res.limit) {
+                            // seat genuinely taken by someone else; a limit/throttle message leaves it selectable
+                            input.disabled = true;
+                            input.closest('.seat').classList.add('unavailable');
+                        }
+                        refreshSeatMap();
+                    }
+                    rebuildRows();
+                }).catch(function () { rebuildRows(); });
+            } else {
+                postSeat('/seats/' + input.value + '/release');
+                rebuildRows();
+            }
+        });
+    });
+    setInterval(refreshSeatMap, 10000);
+    window.addEventListener('pagehide', function () {
+        // If the visitor leaves without booking, free the seats they were holding.
+        if (form.dataset.submitting === 'true') return;
+        seatInputs.filter(function (i) { return i.checked; }).forEach(function (i) {
+            const body = new URLSearchParams(); body.append(csrfName, csrfValue);
+            if (navigator.sendBeacon) navigator.sendBeacon('/seats/' + i.value + '/release', body);
+        });
+    });
+    form.addEventListener('submit', function () { form.dataset.submitting = 'true'; });
+</script>
+</body>
+</html>

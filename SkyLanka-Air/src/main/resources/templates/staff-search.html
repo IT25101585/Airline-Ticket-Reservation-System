@@ -1,0 +1,161 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flight lookup · SkyLanka Air</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/staff-theme.css">
+</head>
+<body class="antialiased">
+<div class="page">
+<nav th:replace="~{fragments :: navStaff}"></nav>
+<div class="page-wrapper">
+    <div th:replace="~{fragments :: staffHeader('Flights', 'Flight lookup', 'Find any flight by route, date or status and see aircraft, load and delays at a glance.')}"></div>
+
+    <div class="page-body">
+        <div class="container-xl">
+
+            <div class="row row-deck row-cards mb-3">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="stat-icon bg-blue-lt text-blue"><i class="bi bi-airplane"></i></span>
+                            <div><div class="stat-value"><span th:text="${resultCount}">0</span></div><div class="stat-label">Flights found</div></div>
+                        </div>
+                    </div></div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="stat-icon bg-azure-lt text-azure"><i class="bi bi-speedometer2"></i></span>
+                            <div><div class="stat-value"><span th:text="${avgLoad}+'%'">0%</span></div><div class="stat-label">Avg load factor</div></div>
+                        </div>
+                    </div></div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="stat-icon bg-orange-lt text-orange"><i class="bi bi-clock-history"></i></span>
+                            <div><div class="stat-value"><span th:text="${delayedCount}">0</span></div><div class="stat-label">Delayed</div></div>
+                        </div>
+                    </div></div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="stat-icon bg-red-lt text-red"><i class="bi bi-x-circle"></i></span>
+                            <div><div class="stat-value"><span th:text="${cancelledCount}">0</span></div><div class="stat-label">Cancelled</div></div>
+                        </div>
+                    </div></div>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" role="alert" th:if="${searchError != null}" th:text="${searchError}">Check your search.</div>
+
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Filters</h3></div>
+                <div class="card-body">
+                    <form class="searchbox row g-3 align-items-end" action="/search" method="get">
+                        <div class="col-md-3">
+                            <label for="search-origin" class="form-label">From</label>
+                            <select id="search-origin" name="origin" class="form-select">
+                                <option value="">Any origin</option>
+                                <option th:each="o : ${origins}" th:value="${o}" th:text="${o}" th:selected="${o == origin}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="search-destination" class="form-label">To</label>
+                            <select id="search-destination" name="destination" class="form-select"
+                                    th:attr="data-selected=${destination != null ? destination : ''}">
+                                <option value="">Any destination</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="search-date" class="form-label">Date</label>
+                            <input id="search-date" type="date" name="date" class="form-control" th:value="${date}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="search-status" class="form-label">Status</label>
+                            <select id="search-status" name="status" class="form-select">
+                                <option value="">Any status</option>
+                                <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${s.name()}" th:selected="${s.name() == status}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="search-scope" class="form-label">Range</label>
+                            <select id="search-scope" name="scope" class="form-select">
+                                <option value="upcoming" th:selected="${scope == 'upcoming'}">Upcoming</option>
+                                <option value="all" th:selected="${scope == 'all'}">Include past</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-flex gap-2">
+                            <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Search</button>
+                            <a class="btn btn-outline-secondary" href="/search">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <script th:inline="javascript">
+                /*<![CDATA[*/
+                var originDestinations = /*[[${originDestinations}]]*/ {};
+                /*]]>*/
+            </script>
+            <script src="/js/route-search.js" defer></script>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Flights</h3>
+                    <div class="card-subtitle ms-auto text-muted" th:text="${resultCount}+' result(s)'">0 results</div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                        <tr>
+                            <th>Flight</th><th>Route</th><th>Departs</th><th>Aircraft</th><th>Status</th><th>Load</th><th>Base fare</th><th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="f : ${results}"
+                            th:with="booked=${bookedMap.get(f.id) != null ? bookedMap.get(f.id) : 0},
+                                     pct=${f.seatCapacity != null and f.seatCapacity > 0 ? (bookedMap.get(f.id) != null ? bookedMap.get(f.id) : 0) * 100 / f.seatCapacity : 0}">
+                            <td data-label="Flight"><strong th:text="${f.flightNumber}"></strong></td>
+                            <td data-label="Route" th:text="${f.origin+' → '+f.destination}"></td>
+                            <td data-label="Departs">
+                                <div th:text="${f.departureDate}"></div>
+                                <div class="text-muted small" th:text="${f.departureTime+' – '+f.arrivalTime}"></div>
+                            </td>
+                            <td data-label="Aircraft" th:text="${f.aircraft}"></td>
+                            <td data-label="Status">
+                                <span class="badge"
+                                      th:classappend="${f.status.name() == 'ON_TIME'} ? 'bg-green-lt' : (${f.status.name() == 'DELAYED'} ? 'bg-orange-lt' : (${f.status.name() == 'CANCELLED'} ? 'bg-red-lt' : 'bg-secondary-lt'))"
+                                      th:text="${f.status}"></span>
+                                <div class="text-muted small" th:if="${f.status.name() == 'DELAYED' and f.delayMinutes != null}" th:text="'+'+${f.delayMinutes}+' min'"></div>
+                            </td>
+                            <td data-label="Load" style="min-width:140px">
+                                <div class="small" th:text="${booked}+' / '+${f.seatCapacity}+' seats'"></div>
+                                <div class="progress progress-sm mt-1">
+                                    <div class="progress-bar" th:classappend="${pct >= 80} ? 'bg-green' : (${pct >= 40} ? 'bg-blue' : 'bg-orange')"
+                                         th:style="'width:'+${pct}+'%'"></div>
+                                </div>
+                            </td>
+                            <td data-label="Base fare"><span th:replace="~{fragments :: currency(${f.baseFare})}"></span></td>
+                            <td class="text-end" data-label="Actions">
+                                <a th:if="${@navPermissions.canViewOperations()}" class="btn btn-sm btn-outline-secondary"
+                                   th:href="@{'/operations/flight/'+${f.id}+'/manifest'}">Manifest</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(results)}"><td colspan="8" class="text-center text-muted py-4">No flights match those filters.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+</body>
+</html>
