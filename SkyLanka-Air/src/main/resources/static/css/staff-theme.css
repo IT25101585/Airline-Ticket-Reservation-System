@@ -1,0 +1,282 @@
+/* SkyLanka Air — staff-facing (Tabler) pages: small compatibility layer.
+   The shared /js/app.js toggles a plain ".hidden" class (not Bootstrap's
+   ".d-none") and expects ".delay-input"/".seat" to exist — this file keeps
+   that working without pulling in the old app.css wholesale. */
+
+.hidden {
+    display: none !important;
+}
+
+/* The staff header sets its dark background inline (style="background:#1a2234")
+   and relies on Bootstrap/Tabler's ".navbar-dark" class to make the nav text
+   readable against it. That default is too low-contrast (and in places
+   resolves to a dark color on a dark background), so force it explicitly
+   here instead - same approach travel-theme.css uses for the customer nav. */
+.navbar-dark .navbar-brand,
+.navbar-dark .navbar-brand:hover,
+.navbar-dark .nav-link {
+    color: rgba(255, 255, 255, .85);
+}
+
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link:focus,
+.navbar-dark .nav-link.active {
+    color: #fff;
+}
+
+.flight-status-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.delay-input {
+    width: 100px;
+}
+
+.seatmap {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: .5rem 0;
+}
+
+.seat {
+    padding: 6px 4px;
+    border: 1px solid #d7dce5;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 11px;
+    background: #eef4ff;
+}
+
+.seat.unavailable {
+    background: #f0f1f3;
+    color: #999;
+}
+
+.seat form {
+    margin-top: 2px;
+}
+
+.seat select {
+    font-size: 10px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    width: 100%;
+}
+
+/* ---- Staff portal shell: dark palette + left sidebar (layout modelled on the
+        staff UI reference; components are still plain Tabler) ---- */
+[data-bs-theme="dark"] {
+    --tblr-body-bg: #0b1220;
+    --tblr-bg-surface: #111a2e;
+    --tblr-bg-surface-secondary: #0f172a;
+    --tblr-border-color: #1f2b45;
+    --tblr-border-color-translucent: #1f2b45;
+    --tblr-primary: #2d8cff;
+    --tblr-primary-rgb: 45, 140, 255;
+}
+
+[data-bs-theme="dark"] body {
+    background: #0b1220;
+}
+
+[data-bs-theme="dark"] .card {
+    background: #111a2e;
+    border: 1px solid #1f2b45;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+[data-bs-theme="dark"] .card-header {
+    border-bottom: 1px solid #1f2b45;
+}
+
+[data-bs-theme="dark"] .table > :not(caption) > * > * {
+    border-color: #1a2540;
+}
+
+[data-bs-theme="dark"] .table thead th {
+    color: #7d8ba8;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: transparent;
+}
+
+.staff-sidebar {
+    background: #0d1526 !important;
+    border-right: 1px solid #1f2b45;
+}
+
+.staff-sidebar .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: 1rem .5rem;
+    color: #fff;
+    text-decoration: none;
+}
+
+.staff-brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #2d8cff;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.staff-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.staff-brand-text small {
+    font-size: .68rem;
+    font-weight: 400;
+    color: #7d8ba8;
+}
+
+.staff-sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    color: rgba(255, 255, 255, .78);
+    border-radius: 8px;
+    margin: 1px 6px;
+}
+
+.staff-sidebar .nav-link:hover,
+.staff-sidebar .nav-link:focus {
+    color: #fff;
+    background: rgba(45, 140, 255, .10);
+}
+
+.staff-sidebar .nav-item.active > .nav-link {
+    color: #fff;
+    background: rgba(45, 140, 255, .18);
+    box-shadow: inset 3px 0 0 #2d8cff;
+}
+
+.staff-sidebar .staff-nav-sep {
+    margin-top: .5rem;
+    padding-top: .5rem;
+    border-top: 1px solid #1f2b45;
+}
+
+.staff-sidebar-footer {
+    padding: .9rem .5rem .5rem;
+    border-top: 1px solid #1f2b45;
+    width: 100%;
+}
+
+.staff-clock {
+    font-size: .72rem;
+    letter-spacing: .05em;
+    color: #7d8ba8;
+    margin-bottom: .5rem;
+    padding-left: .5rem;
+}
+
+/* ---- Consistent page pattern for every staff page ---- */
+.page-header .page-pretitle {
+    color: #2d8cff;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: .15rem;
+}
+
+.page-header .page-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+/* stat cards: icon + big value + small label (same on every page) */
+.stat-card .stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.stat-card .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.stat-card .stat-label {
+    font-size: .72rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #7d8ba8;
+}
+
+/* every card has the same header treatment */
+.card-header .card-title {
+    font-size: .95rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-header .card-subtitle {
+    font-size: .78rem;
+}
+
+/* small headings that sit above groups of cards (support page lists) */
+.staff-section-title {
+    font-size: .8rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #7d8ba8;
+    margin-bottom: .75rem;
+}
+
+/* forms and tables look the same everywhere */
+.page-body .card-body form .form-label {
+    font-size: .78rem;
+    color: #9aa7c2;
+}
+
+.page-body .table td,
+.page-body .table th {
+    vertical-align: middle;
+}
+
+.page-body .card + .card,
+.page-body .row + .card,
+.page-body .card + .row {
+    margin-top: 1rem;
+}
+
+/* Shared pages (notifications, profile, booking details, modify booking) reuse the
+   customer markup; make its borderless cards look like the rest of the staff UI. */
+[data-bs-theme="dark"] .card.border-0 {
+    border: 1px solid #1f2b45 !important;
+    box-shadow: none !important;
+}
+
+[data-bs-theme="dark"] .card.border-0 .text-muted {
+    color: #8a97b1 !important;
+}
+
+/* progress bars on the staff flight lookup */
+[data-bs-theme="dark"] .progress {
+    background: #1a2540;
+}

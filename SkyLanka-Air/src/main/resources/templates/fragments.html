@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<span th:fragment="currency(amount)" th:text="${amount == null ? 'LKR 0.00' : 'LKR ' + #numbers.formatDecimal(amount, 1, 2)}">LKR 0.00</span>
+
+<!-- ============================================================
+     Bootstrap-styled nav for customer-facing pages.
+     ============================================================ -->
+<th:block th:fragment="navCustomer">
+<header class="sl-nav" th:with="nav=${@navPermissions}">
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-0">
+        <a class="sl-brand" th:href="${nav.isSignedIn()} ? @{/dashboard} : @{/}">
+            <span class="sl-brand-mark"><i class="bi bi-airplane-fill"></i></span>
+            <span class="sl-brand-text">SkyLanka Air<small>Fly beautifully</small></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navCustomerCollapse"
+                aria-controls="navCustomerCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navCustomerCollapse">
+            <ul class="navbar-nav mx-lg-auto align-items-lg-center" id="customer-nav-links">
+                <li class="nav-item"><a class="nav-link" href="/search">Search flights</a></li>
+                <li class="nav-item" th:if="${nav.canViewCustomerDashboard()}"><a class="nav-link" href="/dashboard">My trips</a></li>
+                <li class="nav-item" th:if="${nav.isSignedIn()}"><a class="nav-link" href="/profile">Profile</a></li>
+            </ul>
+            <div class="sl-nav-actions">
+                <a th:if="${nav.isSignedIn()}" class="sl-bell" href="/notifications" aria-label="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span id="notification-badge" class="badge rounded-pill"
+                          th:classappend="${unreadNotificationCount == null or unreadNotificationCount == 0} ? ' d-none'"
+                          th:text="${unreadNotificationCount != null and unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}">0</span>
+                </a>
+                <form th:if="${nav.isSignedIn()}" method="post" action="/logout" class="d-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="btn btn-navy btn-sm" type="submit">Log out</button>
+                </form>
+                <a th:if="${!nav.isSignedIn()}" class="sl-linkbtn" href="/login">Sign in</a>
+                <a th:if="${!nav.isSignedIn()}" class="btn btn-navy btn-sm" href="/register">Register</a>
+            </div>
+        </div>
+    </div>
+</nav>
+</header>
+<div th:if="${flashError}" class="container mt-3">
+    <div class="alert alert-danger mb-0" th:text="${flashError}"></div>
+</div>
+<script>
+(function () {
+    var path = location.pathname, best = null, bestLen = -1;
+    document.querySelectorAll('#customer-nav-links a.nav-link').forEach(function (a) {
+        var h = a.getAttribute('href');
+        if ((path === h || path.indexOf(h + '/') === 0) && h.length > bestLen) { best = a; bestLen = h.length; }
+    });
+    if (!best && path.indexOf('/book') === 0) { best = document.querySelector('#customer-nav-links a[href="/search"]'); }
+    if (best) best.classList.add('active');
+})();
+</script>
+<script th:if="${@navPermissions.isSignedIn()}">
+(function () {
+    function updateBadge(count) {
+        var badge = document.getElementById('notification-badge');
+        if (!badge) return;
+        if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.remove('d-none'); }
+        else { badge.classList.add('d-none'); }
+    }
+    function poll() {
+        fetch('/api/notifications/unread-count', {headers: {'Accept': 'application/json'}})
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) { if (data) updateBadge(data.count); })
+            .catch(function () {});
+    }
+    poll();
+    setInterval(poll, 30000);
+})();
+</script>
+</th:block>
+
+<!-- Left-hand photo panel for the split-screen auth pages. -->
+<aside class="auth-visual" th:fragment="authVisual(headline, text)">
+    <a class="sl-brand" href="/">
+        <span class="sl-brand-mark"><i class="bi bi-airplane-fill"></i></span>
+        <span class="sl-brand-text">SkyLanka Air<small>Fly beautifully</small></span>
+    </a>
+    <div>
+        <h2 th:text="${headline}">Fly beautifully.</h2>
+        <p th:text="${text}">Text</p>
+    </div>
+    <small>&copy; SkyLanka Air</small>
+</aside>
+
+<!-- Customer footer, shared by every customer page. Links only to pages that exist. -->
+<footer class="sl-footer" th:fragment="footerCustomer" th:with="nav=${@navPermissions}">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <a class="sl-brand" href="/">
+                    <span class="sl-brand-mark"><i class="bi bi-airplane-fill"></i></span>
+                    <span class="sl-brand-text">SkyLanka Air<small>Fly beautifully</small></span>
+                </a>
+                <p>Search flights, choose your seat, manage your booking and keep your e-ticket in one place.</p>
+            </div>
+            <div class="col-6 col-lg-2 offset-lg-1">
+                <h6>Discover</h6>
+                <ul><li><a href="/search">Search flights</a></li><li><a href="/">Home</a></li></ul>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h6>Your account</h6>
+                <ul>
+                    <li th:if="${nav.isSignedIn()}"><a href="/dashboard">My trips</a></li>
+                    <li th:if="${nav.isSignedIn()}"><a href="/profile">Profile</a></li>
+                    <li th:if="${nav.isSignedIn()}"><a href="/notifications">Notifications</a></li>
+                    <li th:if="${!nav.isSignedIn()}"><a href="/login">Sign in</a></li>
+                    <li th:if="${!nav.isSignedIn()}"><a href="/register">Create account</a></li>
+                    <li th:if="${!nav.isSignedIn()}"><a href="/forgot-password">Reset password</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="sl-footer-bottom"><span>&copy; SkyLanka Air. All rights reserved.</span><span>Online Airline Ticket Reservation System</span></div>
+    </div>
+</footer>
+
+
+<!-- Shared page header for every staff page: section label, title, subtitle. -->
+<th:block th:fragment="staffHeader(section, title, subtitle)">
+<div class="page-header d-print-none container-xl pt-4">
+    <div class="page-pretitle" th:text="${section}">Section</div>
+    <h2 class="page-title" th:text="${title}">Title</h2>
+    <div class="text-muted" th:text="${subtitle}">Subtitle</div>
+</div>
+</th:block>
+
+<!-- ============================================================
+     Tabler-styled nav for staff/admin pages (operations, finance,
+     support, fleet, marketing, reports, admin, check-in). Same
+     @navPermissions checks as the "nav" fragment above — only the
+     markup/classes differ. Tabler is built on Bootstrap 5, so the
+     same alert/badge/button classes work here as on the customer
+     pages.
+     ============================================================ -->
+<th:block th:fragment="navStaff">
+<aside class="navbar navbar-vertical navbar-expand-lg staff-sidebar d-print-none" data-bs-theme="dark" th:with="nav=${@navPermissions}">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navStaffCollapse"
+                aria-controls="navStaffCollapse" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="navbar-brand navbar-brand-autodark" th:href="${nav.isSignedIn()} ? @{/dashboard} : @{/}">
+            <span class="staff-brand-icon"><i class="bi bi-airplane-engines"></i></span>
+            <span class="staff-brand-text">SkyLanka <span class="fw-light">Air</span><small>Staff portal</small></span>
+        </a>
+        <div class="collapse navbar-collapse" id="navStaffCollapse">
+            <ul class="navbar-nav pt-lg-3" id="staff-nav-links">
+                <li class="nav-item" th:if="${nav.canViewAdmin()}"><a class="nav-link" href="/admin"><i class="bi bi-shield-lock"></i><span>Admin</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewOperations()}"><a class="nav-link" href="/operations"><i class="bi bi-broadcast"></i><span>Operations</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewOperations()}"><a class="nav-link" href="/operations/tickets"><i class="bi bi-ticket-perforated"></i><span>Tickets</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewOperations()}"><a class="nav-link" href="/operations/fleet"><i class="bi bi-airplane"></i><span>Fleet</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewCheckin()}"><a class="nav-link" href="/checkin"><i class="bi bi-person-check"></i><span>Check-in</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewSupport()}"><a class="nav-link" href="/support"><i class="bi bi-headset"></i><span>Support</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewFinance()}"><a class="nav-link" href="/finance"><i class="bi bi-cash-coin"></i><span>Finance</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewFinance()}"><a class="nav-link" href="/finance/refund-requests"><i class="bi bi-arrow-return-left"></i><span>Refunds</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewReports()}"><a class="nav-link" href="/reports"><i class="bi bi-bar-chart"></i><span>Reports</span></a></li>
+                <li class="nav-item" th:if="${nav.canViewMarketing()}"><a class="nav-link" href="/marketing"><i class="bi bi-megaphone"></i><span>Marketing</span></a></li>
+                <li class="nav-item staff-nav-sep"><a class="nav-link" href="/search"><i class="bi bi-search"></i><span>Search flights</span></a></li>
+            </ul>
+            <div class="staff-sidebar-footer mt-auto" th:if="${nav.isSignedIn()}">
+                <div class="staff-clock" id="staff-utc-clock">UTC --:--</div>
+                <div class="d-flex align-items-center gap-2">
+                    <a class="nav-link position-relative px-2" href="/notifications" aria-label="Notifications">
+                        <i class="bi bi-bell"></i>
+                        <span id="notification-badge-staff" class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle"
+                              th:classappend="${unreadNotificationCount == null or unreadNotificationCount == 0} ? ' d-none'"
+                              th:text="${unreadNotificationCount != null and unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}">0</span>
+                    </a>
+                    <a class="nav-link px-2" href="/profile"><i class="bi bi-person-circle me-1"></i>Profile</a>
+                    <form method="post" action="/logout" class="ms-auto">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-sm btn-outline-light" type="submit">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>
+<div th:if="${flashError}" class="position-fixed top-0 end-0 m-3" style="z-index:1080;max-width:420px">
+    <div class="alert alert-danger mb-0" th:text="${flashError}"></div>
+</div>
+<script>
+(function () {
+    var path = location.pathname, best = null, bestLen = -1;
+    document.querySelectorAll('#staff-nav-links a.nav-link').forEach(function (a) {
+        var h = a.getAttribute('href');
+        if ((path === h || path.indexOf(h + '/') === 0) && h.length > bestLen) { best = a; bestLen = h.length; }
+    });
+    if (best) best.closest('.nav-item').classList.add('active');
+    var clock = document.getElementById('staff-utc-clock');
+    function tick() { if (clock) clock.textContent = 'UTC ' + new Date().toISOString().slice(11, 16); }
+    tick(); setInterval(tick, 30000);
+})();
+</script>
+<script th:if="${@navPermissions.isSignedIn()}">
+(function () {
+    function updateBadge(count) {
+        var badge = document.getElementById('notification-badge-staff');
+        if (!badge) return;
+        if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.remove('d-none'); }
+        else { badge.classList.add('d-none'); }
+    }
+    function poll() {
+        fetch('/api/notifications/unread-count', {headers: {'Accept': 'application/json'}})
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) { if (data) updateBadge(data.count); })
+            .catch(function () {});
+    }
+    poll();
+    setInterval(poll, 30000);
+})();
+</script>
+</th:block>
+
+<!-- Admin: table rows shared by the dashboard preview and the full pages. -->
+<th:block th:fragment="adminAuditRows(logs, names)">
+    <tr th:each="log : ${logs}" th:classappend="${log.action == 'FLAGGED_ACTIVITY'} ? 'table-danger'">
+        <td data-label="When" th:text="${log.createdAt}"></td>
+        <td data-label="User" th:text="${names.get(log.userId)} ?: 'System'"></td>
+        <td data-label="Action">
+            <span th:if="${log.action == 'FLAGGED_ACTIVITY'}" class="badge bg-danger">UNUSUAL ACTIVITY</span>
+            <span th:unless="${log.action == 'FLAGGED_ACTIVITY'}" th:text="${log.action}"></span>
+        </td>
+        <td data-label="Target" th:text="${log.target}"></td>
+        <td data-label="Details" th:text="${log.details}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(logs)}"><td colspan="5" class="text-center text-muted py-4">No activity recorded yet.</td></tr>
+</th:block>
+
+<th:block th:fragment="adminUserRows(users, returnTo)">
+    <tr th:each="u : ${users}">
+        <td data-label="Name" th:text="${u.name}"></td>
+        <td data-label="Email" th:text="${u.email}"></td>
+        <td data-label="Role" th:text="${u.role}"></td>
+        <td data-label="Employee ID" th:text="${u.employeeId != null ? u.employeeId : '-'}"></td>
+        <td data-label="Status" th:text="${u.active ? 'Active' : 'Inactive'}"></td>
+        <td>
+            <div class="d-flex gap-2">
+                <form method="post" th:action="@{'/admin/user/' + ${u.id} + '/toggle'}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="returnTo" th:value="${returnTo}">
+                    <button class="btn btn-sm btn-outline-secondary">Toggle</button>
+                </form>
+                <form method="post" th:action="@{'/admin/user/' + ${u.id} + '/role'}" class="d-flex gap-2">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="returnTo" th:value="${returnTo}">
+                    <select name="role" class="form-select form-select-sm" style="width:auto">
+                        <option th:each="r : ${#strings.arraySplit('CUSTOMER,OPERATIONS,SUPPORT,FINANCE,MARKETING,ADMIN', ',')}"
+                                th:value="${r}" th:text="${r}" th:selected="${r == u.role.name()}">ROLE</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary">Set role</button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(users)}"><td colspan="6" class="text-center text-muted py-4">No users yet.</td></tr>
+</th:block>
+
+</body>
+</html>

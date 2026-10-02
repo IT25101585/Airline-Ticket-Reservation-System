@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#16253F"/>
+    <stop offset=".45" stop-color="#3C4A6B"/>
+    <stop offset=".8" stop-color="#8A7A86"/>
+    <stop offset="1" stop-color="#C79A80"/>
+  </linearGradient>
+  <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="38"/></filter>
+  <filter id="soft2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="20"/></filter>
+</defs>
+<rect width="1600" height="1000" fill="url(#sky)"/>
+<g filter="url(#soft)">
+  <ellipse cx="230" cy="260" rx="330" ry="90" fill="#7C6F86" opacity=".55"/>
+  <ellipse cx="1180" cy="200" rx="380" ry="80" fill="#5A5F80" opacity=".5"/>
+  <ellipse cx="640" cy="470" rx="420" ry="110" fill="#B08A82" opacity=".45"/>
+  <ellipse cx="1350" cy="520" rx="360" ry="100" fill="#9C8290" opacity=".5"/>
+</g>
+<g filter="url(#soft2)">
+  <ellipse cx="120" cy="760" rx="380" ry="130" fill="#6A5F73" opacity=".85"/>
+  <ellipse cx="620" cy="850" rx="440" ry="140" fill="#7A6A78" opacity=".85"/>
+  <ellipse cx="1150" cy="800" rx="420" ry="150" fill="#5E566B" opacity=".9"/>
+  <ellipse cx="1560" cy="900" rx="330" ry="130" fill="#6C6076" opacity=".9"/>
+  <ellipse cx="380" cy="960" rx="500" ry="120" fill="#4E4A63" opacity=".95"/>
+  <ellipse cx="1000" cy="990" rx="560" ry="120" fill="#4A475E" opacity=".95"/>
+</g>
+
+<g transform="translate(340 190) rotate(-10) scale(1.15)" fill="#0E1B33" opacity=".92">
+  <path d="M8 60 L40 47 L318 44 C360 44 392 54 400 62 C392 71 360 78 318 78 L60 75 Z"/>
+  <polygon points="20,50 2,4 24,4 66,47"/>
+  <polygon points="44,62 10,88 32,88 84,68"/>
+  <polygon points="212,66 112,132 148,132 268,72"/>
+  <polygon points="226,52 176,26 198,26 268,50"/>
+  <ellipse cx="205" cy="96" rx="24" ry="9"/>
+</g>
+</svg>
