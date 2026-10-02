@@ -1,0 +1,135 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Finance · SkyLanka Air</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/staff-theme.css">
+</head>
+<body class="antialiased">
+<div class="page">
+<nav th:replace="~{fragments :: navStaff}"></nav>
+<div class="page-wrapper">
+    <div th:replace="~{fragments :: staffHeader('Finance', 'Finance', 'Review and verify payment transactions.')}"></div>
+
+    <div class="page-body">
+        <div class="container-xl">
+
+            <!-- Stat cards -->
+            <div class="row row-deck row-cards mb-3">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-green-lt text-green"><i class="bi bi-cash-coin"></i></span><div><div class="stat-value"><span><span th:replace="~{fragments :: currency(${revenueToday})}"></span></span></div><div class="stat-label">Revenue today</div></div></div></div></div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-azure-lt text-azure"><i class="bi bi-calendar-week"></i></span><div><div class="stat-value"><span><span th:replace="~{fragments :: currency(${revenueWeek})}"></span></span></div><div class="stat-label">Revenue this week</div></div></div></div></div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-teal-lt text-teal"><i class="bi bi-calendar-month"></i></span><div><div class="stat-value"><span><span th:replace="~{fragments :: currency(${revenueMonth})}"></span></span></div><div class="stat-label">Revenue this month</div></div></div></div></div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-red-lt text-red"><i class="bi bi-exclamation-circle"></i></span><div><div class="stat-value"><span><span th:replace="~{fragments :: currency(${outstandingBalance})}"></span></span></div><div class="stat-label">Outstanding balance</div></div></div></div></div>
+                </div>
+            </div>
+
+            <!-- Summary cards -->
+            <div class="row row-cards mb-3">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">Needs attention</h3></div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Pending payments</span>
+                                <strong th:text="${pendingCount}">0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Failed/void payments</span>
+                                <strong th:text="${failedCount}">0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Unpaid bookings</span>
+                                <strong th:text="${outstandingCount}">0</strong>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a class="btn btn-outline-primary btn-sm" href="/reports">View reports</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">Payment method breakdown</h3></div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Visa</span>
+                                <strong th:text="${methodCounts['VISA']}">0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Mastercard</span>
+                                <strong th:text="${methodCounts['MASTERCARD']}">0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted">Bank transfer</span>
+                                <strong th:text="${methodCounts['BANK_TRANSFER']}">0</strong>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a class="btn btn-outline-primary btn-sm" href="/finance/refund-requests">Refund requests</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions table -->
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Transactions</h3></div>
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                        <tr>
+                            <th>Transaction</th>
+                            <th>Booking</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th class="w-1"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p:${payments}">
+                            <td data-label="Transaction" th:text="${p.transactionId}"></td>
+                            <td data-label="Booking" th:text="${p.booking.reference}"></td>
+                            <td data-label="Amount"><span th:replace="~{fragments :: currency(${p.amount})}"></span></td>
+                            <td data-label="Method" th:text="${p.method != null ? p.method.label : ''}"></td>
+                            <td data-label="Status"><span class="badge bg-blue-lt" th:text="${p.status}"></span></td>
+                            <td>
+                                <form method="post" th:action="@{'/finance/payment/'+${p.id}}" class="d-flex gap-2">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <select name="status" class="form-select form-select-sm" style="width:auto">
+                                        <option value="VERIFIED">Verified</option>
+                                        <option value="VOID">Void</option>
+                                        <option value="REFUNDED">Refunded</option>
+                                    </select>
+                                    <button class="btn btn-sm btn-primary">Save</button>
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       th:if="${p.status.name() != 'PENDING' and p.status.name() != 'FAILED'}"
+                                       th:href="@{'/finance/payment/'+${p.id}+'/invoice'}">Invoice</a>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${payments == null or payments.isEmpty()}">
+                            <td colspan="6" class="text-center text-muted py-4">No transactions to show.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+</body>
+</html>
