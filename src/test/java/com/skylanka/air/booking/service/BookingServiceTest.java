@@ -81,7 +81,7 @@ class BookingServiceTest {
         );
 
         Booking result = service.create(
-                1L, 2L, 3L, "Passenger", "P123", "0770000000", null
+                1L, 2L, 3L, "Passenger", "N1234567", "0770000000", null
         );
 
         assertNotNull(result);
@@ -110,7 +110,7 @@ class BookingServiceTest {
         );
 
         assertThrows(IllegalStateException.class, () ->
-                service.create(1L, 2L, 3L, "Passenger", "P123", "0770000000", null)
+                service.create(1L, 2L, 3L, "Passenger", "N1234567", "0770000000", null)
         );
         verifyNoInteractions(bookings, notifications);
     }
