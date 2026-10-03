@@ -1,0 +1,102 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SkyLanka Air · Fly beautifully</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/travel-theme.css">
+</head>
+<body>
+<nav th:replace="~{fragments :: navCustomer}"></nav>
+
+<header class="sl-hero">
+    <div class="container">
+        <div class="sl-animate">
+            <h1>Discover your next adventure</h1>
+            <p class="lead">Search flights, choose your seat and keep your e-ticket close, all in one place.</p>
+        </div>
+
+        <form class="searchbox sl-panel sl-animate" style="animation-delay:.12s" action="/search" method="get" data-future-only>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3 sl-field">
+                    <label for="home-origin">From</label>
+                    <select id="home-origin" name="origin" class="form-select">
+                        <option value="">Any origin</option>
+                        <option th:each="o : ${origins}" th:value="${o}" th:text="${o}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3 sl-field">
+                    <label for="home-destination">To</label>
+                    <select id="home-destination" name="destination" class="form-select">
+                        <option value="">Any destination</option>
+                    </select>
+                </div>
+                <div class="col-md-3 sl-field">
+                    <label for="home-date">Departure date</label>
+                    <input id="home-date" type="date" name="date" class="form-control">
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button class="btn btn-primary btn-lg" type="submit"><i class="bi bi-search me-2"></i>Search flights</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var originDestinations = /*[[${originDestinations}]]*/ {};
+        /*]]>*/
+    </script>
+</header>
+
+<!-- Real figures from the database -->
+<section class="sl-stats">
+    <div class="container sl-stats-inner">
+        <div class="sl-stat"><strong th:text="${destinationsServed}">0</strong><span>Destinations served</span></div>
+        <div class="sl-stat"><strong th:text="${routesOffered}">0</strong><span>Routes offered</span></div>
+        <div class="sl-stat"><strong th:text="${travelersServed}">0</strong><span>Registered travelers</span></div>
+    </div>
+</section>
+
+<section class="sl-section">
+    <div class="container">
+        <div class="sl-section-head">
+            <span class="sl-eyebrow">Popular right now</span>
+            <h2>Featured flights</h2>
+        </div>
+        <div class="row g-4 sl-stagger" th:if="${featured != null and !featured.isEmpty()}">
+            <div class="col-md-6 col-lg-4" th:each="f:${featured}">
+                <article class="dest-card">
+                    <div class="dest-card-photo" th:style="'background-image:url(https://picsum.photos/seed/' + ${#strings.replace(f.origin+'-'+f.destination,' ','')} + '/640/400)'">
+                        <span class="dest-card-badge" th:text="${f.flightNumber}">SK101</span>
+                    </div>
+                    <div class="dest-card-body">
+                        <div class="dest-card-route"><span th:text="${f.origin}">CMB</span> <i class="bi bi-arrow-right mx-1"></i> <span th:text="${f.destination}">DXB</span></div>
+                        <p class="dest-card-meta" th:text="${f.departureDate+' · '+f.departureTime}"></p>
+                        <div class="dest-card-foot">
+                            <div>
+                                <span class="dest-card-from">From</span>
+                                <strong class="dest-card-price"><span th:replace="~{fragments :: currency(${f.baseFare})}"></span></strong>
+                            </div>
+                            <a class="btn btn-primary btn-sm" th:href="@{'/book/'+${f.id}}">Book now</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="sl-empty" th:if="${featured == null or featured.isEmpty()}">
+            <i class="bi bi-airplane"></i>
+            No featured flights right now. Try the search above.
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments :: footerCustomer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/route-search.js" defer></script>
+</body>
+</html>

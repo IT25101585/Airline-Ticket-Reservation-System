@@ -1,0 +1,124 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Support · SkyLanka Air</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/staff-theme.css">
+</head>
+<body class="antialiased">
+<div class="page">
+<nav th:replace="~{fragments :: navStaff}"></nav>
+<div class="page-wrapper">
+    <div th:replace="~{fragments :: staffHeader('Support', 'Customer support', 'Look up bookings and resolve customer requests.')}"></div>
+    <div class="page-body">
+        <div class="container-xl">
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="get" action="/support" class="d-flex gap-2">
+                        <input type="text" name="q" class="form-control" placeholder="Search by reference, name, email or phone" th:value="${query}">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                        <a th:if="${query != null and !query.isBlank()}" class="btn btn-outline-secondary" href="/support">Clear</a>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row row-deck row-cards mb-4">
+                <div class="col-sm-4">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-orange-lt text-orange"><i class="bi bi-chat-left-text"></i></span><div><div class="stat-value"><span th:text="${openComplaintCount}">0</span></div><div class="stat-label">Open complaints</div></div></div></div></div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-red-lt text-red"><i class="bi bi-clock-history"></i></span><div><div class="stat-value"><span th:text="${agingComplaintCount}">0</span></div><div class="stat-label">Open &gt;24h</div></div></div></div></div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card card-sm stat-card"><div class="card-body"><div class="d-flex align-items-center gap-3"><span class="stat-icon bg-orange-lt text-orange"><i class="bi bi-arrow-return-left"></i></span><div><div class="stat-value"><span th:text="${#lists.size(pendingRefundRequests)}">0</span></div><div class="stat-label">Pending refunds</div></div></div></div></div>
+                </div>
+            </div>
+
+            <h3 class="staff-section-title">Bookings</h3>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6 col-lg-4" th:each="b:${bookings}">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <strong th:text="${b.reference}"></strong>
+                            <p class="text-muted small" th:text="${b.passengerName+(b.passengerCount > 1 ? ' (+'+(b.passengerCount-1)+' more)' : '')+' · '+b.flight.flightNumber}"></p>
+                            <form method="post" th:action="@{'/support/booking/'+${b.reference}}" class="mb-2">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <div class="mb-2">
+                                    <label th:for="${'passengerName-'+b.reference}" class="form-label small">Passenger name</label>
+                                    <input th:id="${'passengerName-'+b.reference}" name="passengerName" class="form-control form-control-sm" th:value="${b.passengerName}">
+                                </div>
+                                <div class="mb-2">
+                                    <label th:for="${'passengerContact-'+b.reference}" class="form-label small">Contact</label>
+                                    <input th:id="${'passengerContact-'+b.reference}" name="passengerContact" class="form-control form-control-sm" th:value="${b.passengerContact}">
+                                </div>
+                                <button class="btn btn-sm btn-primary">Update</button>
+                            </form>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-secondary" th:href="@{'/booking/'+${b.reference}}">View booking</a>
+                                <form method="post" th:action="@{'/booking/'+${b.reference}+'/cancel'}"
+                                      th:if="${b.status.name() != 'CANCELLED' and b.status.name() != 'COMPLETED'}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="btn btn-sm btn-outline-danger">Cancel booking</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="staff-section-title">Complaints</h3>
+            <div th:each="c:${complaints}"
+                 th:class="${'card mb-2' + (((c.status.name() == 'OPEN' or c.status.name() == 'IN_PROGRESS') and c.createdAt != null and c.createdAt.isBefore(agingCutoff)) ? ' border-start border-danger border-4' : '')}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <strong th:text="${c.displayReference + ' · ' + c.subject}"></strong>
+                        <span class="badge bg-primary-lt" th:text="${c.status.label}"></span>
+                    </div>
+                    <p class="mb-1" th:text="${c.description}"></p>
+                    <p class="text-muted small" th:text="${'Opened ' + c.createdAt}"></p>
+                    <form method="post" th:action="@{'/support/complaint/'+${c.id}}" class="d-flex gap-2 flex-wrap">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <select name="status" class="form-select form-select-sm" style="width:auto">
+                            <option value="OPEN" th:selected="${c.status.name() == 'OPEN'}">Under Review</option>
+                            <option value="IN_PROGRESS" th:selected="${c.status.name() == 'IN_PROGRESS'}">In Progress</option>
+                            <option value="RESOLVED" th:selected="${c.status.name() == 'RESOLVED'}">Resolved</option>
+                            <option value="CLOSED" th:selected="${c.status.name() == 'CLOSED'}">Closed</option>
+                        </select>
+                        <input name="response" class="form-control form-control-sm" placeholder="Response" th:value="${c.response}" style="max-width:260px">
+                        <button class="btn btn-sm btn-primary">Update</button>
+                    </form>
+                </div>
+            </div>
+
+            <h3 class="staff-section-title mt-4">Refund requests awaiting review</h3>
+            <div th:if="${#lists.isEmpty(pendingRefundRequests)}" class="card text-center py-4">
+                <p class="text-muted mb-0">No refund requests are pending.</p>
+            </div>
+            <div class="card" th:if="${!#lists.isEmpty(pendingRefundRequests)}">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead><tr><th>Booking</th><th>Customer</th><th>Reason</th><th>Requested</th></tr></thead>
+                        <tbody>
+                        <tr th:each="r : ${pendingRefundRequests}">
+                            <td data-label="Booking"><a th:href="@{'/booking/'+${r.booking.reference}}" th:text="${r.booking.reference}"></a></td>
+                            <td data-label="Customer" th:text="${r.customer.name}"></td>
+                            <td data-label="Reason" th:text="${r.reason}"></td>
+                            <td data-label="Requested" th:text="${r.createdAt}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer text-muted small">Finance owns approval — this is a read-only status view.</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+</body>
+</html>
