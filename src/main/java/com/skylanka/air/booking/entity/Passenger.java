@@ -28,8 +28,7 @@ public class Passenger {
     @Column(name = "full_name", nullable = false, length = 100)
     private String name;
 
-    @NotBlank
-    @Pattern(regexp = "[A-Za-z0-9]{6,9}", message = "Enter a valid passport number (6-9 letters/digits).")
+    @Pattern(regexp = "([A-Za-z0-9]{6,9})?", message = "Enter a valid passport number (6-9 letters/digits).")
     @Column(name = "passport_number", nullable = false, length = 9)
     private String passportNumber;
 

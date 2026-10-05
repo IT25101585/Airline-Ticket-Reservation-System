@@ -33,8 +33,7 @@ public class Booking {
     @Pattern(regexp = "[\\p{L} .'-]+", message = "Passenger name may only contain letters, spaces, apostrophes, periods and hyphens.")
     @Column(nullable = false, length = 100)
     private String passengerName;
-    @NotBlank
-    @Pattern(regexp = "[A-Za-z0-9]{6,9}", message = "Enter a valid passport number (6-9 letters/digits).")
+    @Pattern(regexp = "([A-Za-z0-9]{6,9})?", message = "Enter a valid passport number (6-9 letters/digits).")
     @Column(nullable = false, length = 9)
     private String passportNumber;
     @NotBlank

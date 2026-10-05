@@ -222,6 +222,12 @@ public class BookingService {
         if (seatIds == null || seatIds.isEmpty()) {
             throw new IllegalArgumentException("Select at least one seat.");
         }
+        // A single blank passport box is submitted as "" and Spring binds that to an EMPTY list
+        // (not [""]). Treat "none sent" as one blank passport per seat; validatePassengerFields
+        // still rejects blanks on international flights.
+        if (passports == null || passports.isEmpty()) {
+            passports = new ArrayList<>(Collections.nCopies(seatIds.size(), ""));
+        }
         if (names == null || passports == null || contacts == null
                 || names.size() != seatIds.size()
                 || passports.size() != seatIds.size()
